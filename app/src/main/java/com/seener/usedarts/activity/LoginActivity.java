@@ -4,19 +4,23 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.lifecycle.ViewModelProvider;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.seener.usedarts.constants.FirebaseContants;
 import com.seener.usedarts.databinding.ActivityLoginBinding;
 import com.seener.usedarts.ui.login.LoginViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.seener.usedarts.ui.login.SignUpDialog;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity implements SignUpDialog.SignUpDialogListener {
 
     private ActivityLoginBinding binding;
 
@@ -35,6 +39,8 @@ public class LoginActivity extends AppCompatActivity {
 
         viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
+        binding.registerButton.setEnabled(true);
+
         initUi();
     }
 
@@ -48,13 +54,10 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        // 设置注册按钮点击事件
         binding.registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String email = binding.emailEditText.getText().toString();
-                String password = binding.passwordEditText.getText().toString();
-                viewModel.register(email, password);
+                showRegisterDialog();
             }
         });
 
@@ -93,6 +96,24 @@ public class LoginActivity extends AppCompatActivity {
             if (success) {
                 // 登录成功
                 FirebaseUser currentUser = mAuth.getCurrentUser();
+//                FirebaseContants.DISPLAY_NAME = currentUser.getDisplayName();
+                FirebaseContants.EMAIL = currentUser.getEmail();
+
+                Log.d("FirebaseUser", "getProviderId:" + currentUser.getProviderId());
+                Log.d("FirebaseUser", "getTenantId:" + currentUser.getTenantId());
+                Log.d("FirebaseUser", "getUid:" + currentUser.getUid());
+                Log.d("FirebaseUser", "getEmail:" + currentUser.getEmail());
+                Log.d("FirebaseUser", "getDisplayName:" + currentUser.getDisplayName());
+                if (currentUser.getProviderData() != null) {
+                    Log.d("FirebaseUser", "getProviderData size:" + currentUser.getProviderData().size());
+                }
+
+                currentUser.getIdToken(false).addOnSuccessListener(getTokenResult -> {
+                    FirebaseContants.TOKEN = getTokenResult.getToken();
+                    // TODO
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    startActivity(intent);
+                });
                 if (currentUser != null) {
                     // 获取用户信息，执行相应的操作
                 }
@@ -121,6 +142,15 @@ public class LoginActivity extends AppCompatActivity {
         boolean isEnable = !TextUtils.isEmpty(email) && !TextUtils.isEmpty(password);
 
         binding.loginButton.setEnabled(isEnable);
-        binding.registerButton.setEnabled(isEnable);
+    }
+
+    private void showRegisterDialog() {
+        SignUpDialog registerDialog = new SignUpDialog();
+        registerDialog.show(getSupportFragmentManager(), "Sign Up");
+    }
+
+    @Override
+    public void onSignUpSuccess() {
+        //TODO
     }
 }

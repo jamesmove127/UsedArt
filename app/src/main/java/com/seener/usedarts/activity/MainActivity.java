@@ -1,12 +1,18 @@
 package com.seener.usedarts.activity;
 
+import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.Menu;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.TextView;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 
+import androidx.appcompat.widget.SearchView;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -14,7 +20,9 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.seener.usedarts.R;
+import com.seener.usedarts.constants.FirebaseContants;
 import com.seener.usedarts.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
@@ -29,7 +37,28 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(getResources().getColor(R.color.purple_500));
+        }
+
         setSupportActionBar(binding.appBarMain.toolbar);
+
+        binding.appBarMain.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                // 在这里处理搜索提交事件
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // 在这里处理搜索文本变化事件
+                return true;
+            }
+        });
+
         binding.appBarMain.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -48,6 +77,9 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
+
+        setUpNavHeader();
+
     }
 
     @Override
@@ -62,5 +94,17 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
+    }
+
+    private void setUpNavHeader() {
+        if (!TextUtils.isEmpty(FirebaseContants.EMAIL)) {
+            View headerView = binding.navView.getHeaderView(0);
+            if (headerView != null) {
+                TextView userEmailTextView = headerView.findViewById(R.id.user_email);
+                if (userEmailTextView != null) {
+                    userEmailTextView.setText(FirebaseContants.EMAIL);
+                }
+            }
+        }
     }
 }

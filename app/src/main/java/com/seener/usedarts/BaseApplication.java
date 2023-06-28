@@ -5,6 +5,7 @@ import android.content.Context;
 
 import androidx.multidex.MultiDex;
 
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -15,6 +16,7 @@ public class BaseApplication extends Application {
         super.onCreate();
         FirebaseAnalytics.getInstance(this);
         FirebaseAuth.getInstance();
+        FirebaseApp.initializeApp(this);
     }
 
     @Override
