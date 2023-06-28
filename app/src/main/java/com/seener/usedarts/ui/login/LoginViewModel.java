@@ -1,16 +1,18 @@
 package com.seener.usedarts.ui.login;
 
 
+import android.util.Log;
+
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.seener.usedarts.model.LoginInfos;
 
 public class LoginViewModel extends ViewModel {
 
-    private MutableLiveData<Boolean> loginResult = new MutableLiveData<>();
-    private MutableLiveData<Boolean> registerResult = new MutableLiveData<>();
+    private MutableLiveData<LoginInfos> loginResult = new MutableLiveData<>();
     private FirebaseAuth mAuth;
 
     public LoginViewModel() {
@@ -21,29 +23,20 @@ public class LoginViewModel extends ViewModel {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        loginResult.setValue(true);
+                        loginResult.setValue(new LoginInfos(true, ""));
                     } else {
-                        loginResult.setValue(false);
+                        Exception e = task.getException();
+                        if (e != null) {
+                            Log.d("LoginViewModel", "" + e.getMessage());
+                            loginResult.setValue(new LoginInfos(false, "" + e.getMessage()));
+                        }
                     }
                 });
     }
 
-    public void register(String email, String password) {
-        mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        registerResult.setValue(true);
-                    } else {
-                        registerResult.setValue(false);
-                    }
-                });
-    }
 
-    public MutableLiveData<Boolean> getLoginResult() {
+    public MutableLiveData<LoginInfos> getLoginResult() {
         return loginResult;
     }
 
-    public MutableLiveData<Boolean> getRegisterResult() {
-        return registerResult;
-    }
 }

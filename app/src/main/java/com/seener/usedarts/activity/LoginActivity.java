@@ -1,10 +1,16 @@
 package com.seener.usedarts.activity;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -13,6 +19,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.seener.usedarts.constants.FirebaseContants;
 import com.seener.usedarts.databinding.ActivityLoginBinding;
 import com.seener.usedarts.ui.login.LoginViewModel;
@@ -40,7 +49,9 @@ public class LoginActivity extends AppCompatActivity implements SignUpDialog.Sig
         viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
         binding.registerButton.setEnabled(true);
-
+        askNotificationPermission();
+        checkGooglePlayServicesAvailable();
+        getNotificationToken();
         initUi();
     }
 
@@ -91,46 +102,44 @@ public class LoginActivity extends AppCompatActivity implements SignUpDialog.Sig
             }
         });
 
-        // 监听登录结果
-        viewModel.getLoginResult().observe(this, success -> {
-            if (success) {
-                // 登录成功
+
+        viewModel.getLoginResult().observe(this, loginInfos -> {
+            if (loginInfos.isSuccess()) {
+
                 FirebaseUser currentUser = mAuth.getCurrentUser();
-//                FirebaseContants.DISPLAY_NAME = currentUser.getDisplayName();
-                FirebaseContants.EMAIL = currentUser.getEmail();
 
-                Log.d("FirebaseUser", "getProviderId:" + currentUser.getProviderId());
-                Log.d("FirebaseUser", "getTenantId:" + currentUser.getTenantId());
-                Log.d("FirebaseUser", "getUid:" + currentUser.getUid());
-                Log.d("FirebaseUser", "getEmail:" + currentUser.getEmail());
-                Log.d("FirebaseUser", "getDisplayName:" + currentUser.getDisplayName());
-                if (currentUser.getProviderData() != null) {
-                    Log.d("FirebaseUser", "getProviderData size:" + currentUser.getProviderData().size());
-                }
-
-                currentUser.getIdToken(false).addOnSuccessListener(getTokenResult -> {
-                    FirebaseContants.TOKEN = getTokenResult.getToken();
-                    // TODO
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    startActivity(intent);
-                });
                 if (currentUser != null) {
-                    // 获取用户信息，执行相应的操作
+                    FirebaseContants.EMAIL = currentUser.getEmail();
+
+                    Log.d("FirebaseUser", "getProviderId:" + currentUser.getProviderId());
+                    Log.d("FirebaseUser", "getTenantId:" + currentUser.getTenantId());
+                    Log.d("FirebaseUser", "getUid:" + currentUser.getUid());
+                    Log.d("FirebaseUser", "getEmail:" + currentUser.getEmail());
+                    Log.d("FirebaseUser", "getDisplayName:" + currentUser.getDisplayName());
+                    if (currentUser.getProviderData() != null) {
+                        Log.d("FirebaseUser", "getProviderData size:" + currentUser.getProviderData().size());
+                    }
+
+                    currentUser.getIdToken(false).addOnSuccessListener(getTokenResult -> {
+                        FirebaseContants.TOKEN = getTokenResult.getToken();
+                        // TODO
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        startActivity(intent);
+                    });
                 }
             } else {
-                // 登录失败
-                Toast.makeText(LoginActivity.this, "登录失败", Toast.LENGTH_SHORT).show();
-            }
-        });
+                String errorMessage = loginInfos.getMessage();
+                if (!TextUtils.isEmpty(errorMessage)) {
+                    if (errorMessage.contains("mail")) {
+                        binding.emailLayout.setError(errorMessage);
+                    } else if (errorMessage.contains("password")) {
+                        binding.passwordLayout.setError(errorMessage);
+                    } else {
+                        binding.passwordLayout.setError(errorMessage);
+                    }
 
-        // 监听注册结果
-        viewModel.getRegisterResult().observe(this, success -> {
-            if (success) {
-                // 注册成功
-                Toast.makeText(LoginActivity.this, "注册成功", Toast.LENGTH_SHORT).show();
-            } else {
-                // 注册失败
-                Toast.makeText(LoginActivity.this, "注册失败", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
     }
@@ -142,6 +151,8 @@ public class LoginActivity extends AppCompatActivity implements SignUpDialog.Sig
         boolean isEnable = !TextUtils.isEmpty(email) && !TextUtils.isEmpty(password);
 
         binding.loginButton.setEnabled(isEnable);
+        binding.passwordLayout.setError(null);
+        binding.emailLayout.setError(null);
     }
 
     private void showRegisterDialog() {
@@ -151,6 +162,60 @@ public class LoginActivity extends AppCompatActivity implements SignUpDialog.Sig
 
     @Override
     public void onSignUpSuccess() {
-        //TODO
+        binding.passwordEditText.setText("");
+        binding.emailEditText.setText("");
+    }
+
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    // FCM SDK (and your app) can post notifications.
+                } else {
+                    Toast.makeText(this, "your app will not show notifications.", Toast.LENGTH_LONG);
+                }
+            });
+
+    private void askNotificationPermission() {
+        // This is only necessary for API level >= 33 (TIRAMISU)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+                    PackageManager.PERMISSION_GRANTED) {
+                // FCM SDK (and your app) can post notifications.
+            } else if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                // TODO: display an educational UI explaining to the user the features that will be enabled
+                //       by them granting the POST_NOTIFICATION permission. This UI should provide the user
+                //       "OK" and "No thanks" buttons. If the user selects "OK," directly request the permission.
+                //       If the user selects "No thanks," allow the user to continue without notifications.
+            } else {
+                // Directly ask for the permission
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
+    }
+
+    private void checkGooglePlayServicesAvailable() {
+        GoogleApiAvailability apiAvailability = new GoogleApiAvailability();
+        if (ConnectionResult.SUCCESS == apiAvailability.isGooglePlayServicesAvailable(this)) {
+
+        } else {
+            apiAvailability.makeGooglePlayServicesAvailable(this);
+        }
+    }
+
+    private void getNotificationToken() {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w("FCM", "Fetching FCM registration token failed", task.getException());
+                        return;
+                    }
+
+                    // Get new FCM registration token
+                    String token = task.getResult();
+
+                    // Log and toast
+
+                    Log.d("FCM", "token:" + token);
+                });
     }
 }
