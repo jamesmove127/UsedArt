@@ -14,7 +14,6 @@ public class LoginViewModel extends ViewModel {
     private FirebaseAuth mAuth;
 
     public LoginViewModel() {
-        // 初始化 FirebaseAuth
         mAuth = FirebaseAuth.getInstance();
     }
 

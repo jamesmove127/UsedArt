@@ -5,6 +5,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Toast;
 
@@ -55,6 +58,36 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        binding.emailEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                checkButtonEnable();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
+        binding.passwordEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                checkButtonEnable();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
         // 监听登录结果
         viewModel.getLoginResult().observe(this, success -> {
             if (success) {
@@ -79,5 +112,15 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(LoginActivity.this, "注册失败", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void checkButtonEnable() {
+        String email = binding.emailEditText.getText().toString();
+        String password = binding.passwordEditText.getText().toString();
+
+        boolean isEnable = !TextUtils.isEmpty(email) && !TextUtils.isEmpty(password);
+
+        binding.loginButton.setEnabled(isEnable);
+        binding.registerButton.setEnabled(isEnable);
     }
 }
