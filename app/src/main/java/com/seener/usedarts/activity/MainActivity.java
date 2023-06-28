@@ -104,6 +104,10 @@ public class MainActivity extends AppCompatActivity {
                 if (userEmailTextView != null) {
                     userEmailTextView.setText(FirebaseContants.EMAIL);
                 }
+                TextView nickNameTextView = headerView.findViewById(R.id.nick_name);
+                if (nickNameTextView != null) {
+                    nickNameTextView.setText(FirebaseContants.EMAIL);
+                }
             }
         }
     }
