@@ -7,12 +7,17 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.seener.usedarts.constants.FirebaseContants;
+import com.seener.usedarts.database.DatabaseOperations;
+import com.seener.usedarts.model.realm.CurrentUser;
 import com.seener.usedarts.model.LoginInfos;
+import com.seener.usedarts.model.SaveUserInfo;
 
 public class LoginViewModel extends ViewModel {
 
     private MutableLiveData<LoginInfos> loginResult = new MutableLiveData<>();
+    private MutableLiveData<SaveUserInfo> saveUserResult = new MutableLiveData<>();
+
     private FirebaseAuth mAuth;
 
     public LoginViewModel() {
@@ -34,9 +39,22 @@ public class LoginViewModel extends ViewModel {
                 });
     }
 
+    public void saveUserInfo(CurrentUser currentUser) {
+
+        FirebaseContants.TOKEN = currentUser.getToken();
+        // TODO
+        DatabaseOperations.getInstance().insertOrUpdateCurrent(
+                new CurrentUser(currentUser.getEmail(), currentUser.getEmail(), FirebaseContants.TOKEN),
+                (success, message) -> saveUserResult.setValue(new SaveUserInfo(success, message)));
+    }
+
 
     public MutableLiveData<LoginInfos> getLoginResult() {
         return loginResult;
+    }
+
+    public MutableLiveData<SaveUserInfo> getSaveUserResult() {
+        return saveUserResult;
     }
 
 }

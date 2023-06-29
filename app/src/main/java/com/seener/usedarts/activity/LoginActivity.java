@@ -24,6 +24,7 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.seener.usedarts.constants.FirebaseContants;
 import com.seener.usedarts.databinding.ActivityLoginBinding;
+import com.seener.usedarts.model.realm.CurrentUser;
 import com.seener.usedarts.ui.login.LoginViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -121,10 +122,10 @@ public class LoginActivity extends AppCompatActivity implements SignUpDialog.Sig
                     }
 
                     currentUser.getIdToken(false).addOnSuccessListener(getTokenResult -> {
-                        FirebaseContants.TOKEN = getTokenResult.getToken();
-                        // TODO
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        startActivity(intent);
+                        //TODO
+                        viewModel.saveUserInfo(new CurrentUser(currentUser.getEmail(), currentUser.getEmail(), getTokenResult.getToken()));
+
+
                     });
                 }
             } else {
@@ -141,6 +142,12 @@ public class LoginActivity extends AppCompatActivity implements SignUpDialog.Sig
                 }
 
             }
+        });
+
+        viewModel.getSaveUserResult().observe(this, saveUserInfo -> {
+            Log.d("REALM", saveUserInfo.toString());
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(intent);
         });
     }
 
