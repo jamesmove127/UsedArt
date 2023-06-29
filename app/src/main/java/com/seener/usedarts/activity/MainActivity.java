@@ -3,6 +3,7 @@ package com.seener.usedarts.activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.Window;
@@ -20,10 +21,17 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.seener.usedarts.R;
 import com.seener.usedarts.constants.FirebaseContants;
+import com.seener.usedarts.constants.LoginStatus;
+import com.seener.usedarts.database.DatabaseOperations;
 import com.seener.usedarts.databinding.ActivityMainBinding;
+import com.seener.usedarts.model.realm.CurrentUser;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -97,18 +105,38 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setUpNavHeader() {
-        if (!TextUtils.isEmpty(FirebaseContants.EMAIL)) {
-            View headerView = binding.navView.getHeaderView(0);
-            if (headerView != null) {
-                TextView userEmailTextView = headerView.findViewById(R.id.user_email);
-                if (userEmailTextView != null) {
-                    userEmailTextView.setText(FirebaseContants.EMAIL);
-                }
-                TextView nickNameTextView = headerView.findViewById(R.id.nick_name);
-                if (nickNameTextView != null) {
-                    nickNameTextView.setText(FirebaseContants.EMAIL);
-                }
-            }
-        }
+        Observable.create(emitter -> {
+                    CurrentUser currentUser = DatabaseOperations.getInstance().getCurrentUser();
+                    Log.d("MainActivity", "currentUser:" + currentUser.toString());
+                    if (currentUser != null) {
+                        emitter.onNext(currentUser.getEmail());
+                    } else {
+                        emitter.onNext("");
+                    }
+                    DatabaseOperations.getInstance().close();
+                    emitter.onComplete();
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(result -> {
+
+                    String email = String.valueOf(result);
+                    if (!TextUtils.isEmpty(email)) {
+                        View headerView = binding.navView.getHeaderView(0);
+                        if (headerView != null) {
+                            TextView userEmailTextView = headerView.findViewById(R.id.user_email);
+                            if (userEmailTextView != null) {
+                                userEmailTextView.setText(email);
+                            }
+                            TextView nickNameTextView = headerView.findViewById(R.id.nick_name);
+                            if (nickNameTextView != null) {
+                                nickNameTextView.setText(email);
+                            }
+                        }
+                    }
+
+                }, throwable -> {
+                    // TODO
+                });
     }
 }

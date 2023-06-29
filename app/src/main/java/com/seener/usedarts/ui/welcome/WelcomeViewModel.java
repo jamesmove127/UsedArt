@@ -2,7 +2,6 @@ package com.seener.usedarts.ui.welcome;
 
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
-import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
