@@ -51,6 +51,9 @@ public class WelcomeViewModel extends ViewModel {
 
                         // Get new FCM registration token
                         String token = task.getResult();
+
+                        //TODO upload notification token to server
+
                         emitter.onNext(token);
                         emitter.onComplete();
                     });

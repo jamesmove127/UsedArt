@@ -38,7 +38,6 @@ public class WelcomeActivity extends AppCompatActivity {
 
         checkGooglePlayServicesAvailable();
         askNotificationPermission();
-        getNotificationToken();
 
         initViewModel();
 
@@ -96,22 +95,5 @@ public class WelcomeActivity extends AppCompatActivity {
         } else {
             apiAvailability.makeGooglePlayServicesAvailable(this);
         }
-    }
-
-    private void getNotificationToken() {
-        FirebaseMessaging.getInstance().getToken()
-                .addOnCompleteListener(task -> {
-                    if (!task.isSuccessful()) {
-                        Log.w("FCM", "Fetching FCM registration token failed", task.getException());
-                        return;
-                    }
-
-                    // Get new FCM registration token
-                    String token = task.getResult();
-
-                    // Log and toast
-
-                    Log.d("FCM", "token:" + token);
-                });
     }
 }
