@@ -11,6 +11,8 @@ public class DatabaseOperations {
 
     private static volatile DatabaseOperations INSTANCE;
 
+    private Realm realm;
+
     private DatabaseOperations() {
     }
 
@@ -27,7 +29,7 @@ public class DatabaseOperations {
 
     public synchronized void insertOrUpdateCurrent(CurrentUser currentUser, TransactionCallback callback) {
 
-        Realm realm = Realm.getDefaultInstance();
+        realm = Realm.getDefaultInstance();
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -51,10 +53,23 @@ public class DatabaseOperations {
     }
 
     public synchronized CurrentUser getCurrentUser() {
-        Realm realm = Realm.getDefaultInstance();
-        RealmResults<CurrentUser> persons = realm.where(CurrentUser.class).findAll();
-        realm.close();
-        return persons.get(0);
+        realm = Realm.getDefaultInstance();
+        try {
+            RealmResults<CurrentUser> persons = realm.where(CurrentUser.class).findAll();
+            if (persons == null || persons.isEmpty()) {
+                return null;
+            }
+            return persons.get(0);
+        } catch (Exception e) {
+            Log.d("REALM", "getCurrentUser:" + e.getMessage() + " " + e);
+        }
+        return null;
+    }
+
+    public synchronized void close() {
+        if (realm != null) {
+            realm.close();
+        }
     }
 
     public interface TransactionCallback {

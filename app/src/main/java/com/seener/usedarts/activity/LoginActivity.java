@@ -19,9 +19,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.seener.usedarts.constants.FirebaseContants;
 import com.seener.usedarts.databinding.ActivityLoginBinding;
 import com.seener.usedarts.model.realm.CurrentUser;
@@ -50,9 +47,6 @@ public class LoginActivity extends AppCompatActivity implements SignUpDialog.Sig
         viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
         binding.registerButton.setEnabled(true);
-        askNotificationPermission();
-        checkGooglePlayServicesAvailable();
-        getNotificationToken();
         initUi();
     }
 
@@ -173,56 +167,7 @@ public class LoginActivity extends AppCompatActivity implements SignUpDialog.Sig
         binding.emailEditText.setText("");
     }
 
-    private final ActivityResultLauncher<String> requestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    // FCM SDK (and your app) can post notifications.
-                } else {
-                    Toast.makeText(this, "your app will not show notifications.", Toast.LENGTH_LONG);
-                }
-            });
 
-    private void askNotificationPermission() {
-        // This is only necessary for API level >= 33 (TIRAMISU)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
-                    PackageManager.PERMISSION_GRANTED) {
-                // FCM SDK (and your app) can post notifications.
-            } else if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
-                // TODO: display an educational UI explaining to the user the features that will be enabled
-                //       by them granting the POST_NOTIFICATION permission. This UI should provide the user
-                //       "OK" and "No thanks" buttons. If the user selects "OK," directly request the permission.
-                //       If the user selects "No thanks," allow the user to continue without notifications.
-            } else {
-                // Directly ask for the permission
-                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
-            }
-        }
-    }
 
-    private void checkGooglePlayServicesAvailable() {
-        GoogleApiAvailability apiAvailability = new GoogleApiAvailability();
-        if (ConnectionResult.SUCCESS == apiAvailability.isGooglePlayServicesAvailable(this)) {
 
-        } else {
-            apiAvailability.makeGooglePlayServicesAvailable(this);
-        }
-    }
-
-    private void getNotificationToken() {
-        FirebaseMessaging.getInstance().getToken()
-                .addOnCompleteListener(task -> {
-                    if (!task.isSuccessful()) {
-                        Log.w("FCM", "Fetching FCM registration token failed", task.getException());
-                        return;
-                    }
-
-                    // Get new FCM registration token
-                    String token = task.getResult();
-
-                    // Log and toast
-
-                    Log.d("FCM", "token:" + token);
-                });
-    }
 }
