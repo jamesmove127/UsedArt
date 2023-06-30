@@ -117,7 +117,7 @@ public class LoginActivity extends AppCompatActivity implements SignUpDialog.Sig
 
                     currentUser.getIdToken(false).addOnSuccessListener(getTokenResult -> {
                         //TODO
-                        viewModel.saveUserInfo(new CurrentUser(currentUser.getEmail(), currentUser.getEmail(), getTokenResult.getToken()));
+                        viewModel.saveUserInfo(new CurrentUser(currentUser.getUid(), currentUser.getEmail(), currentUser.getEmail(), getTokenResult.getToken()));
 
 
                     });
@@ -166,8 +166,6 @@ public class LoginActivity extends AppCompatActivity implements SignUpDialog.Sig
         binding.passwordEditText.setText("");
         binding.emailEditText.setText("");
     }
-
-
 
 
 }

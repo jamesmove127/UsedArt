@@ -66,6 +66,40 @@ public class DatabaseOperations {
         return null;
     }
 
+    public synchronized String getCurrentUserToken() {
+        realm = Realm.getDefaultInstance();
+        try {
+            CurrentUser currentUser = realm.where(CurrentUser.class).findFirst();
+
+            if (currentUser == null) {
+                return null;
+            }
+            // TODO why?
+            CurrentUser currentUser1 = realm.copyFromRealm(currentUser);
+            String token = "" + currentUser1.getToken();
+            return token;
+        } catch (Exception e) {
+            Log.d("REALM", "getCurrentUserToken:" + e.getMessage() + " " + e);
+        }
+        return null;
+    }
+
+    public synchronized String getCurrentUserEmail() {
+        realm = Realm.getDefaultInstance();
+        try {
+            CurrentUser currentUser = realm.where(CurrentUser.class).findFirst();
+            if (currentUser == null) {
+                return null;
+            }
+            CurrentUser currentUser1 = realm.copyFromRealm(currentUser);
+            String email = "" + currentUser1.getEmail();
+            return email;
+        } catch (Exception e) {
+            Log.d("REALM", "getCurrentUserEmail:" + e.getMessage() + " " + e);
+        }
+        return null;
+    }
+
     public synchronized void close() {
         if (realm != null) {
             realm.close();

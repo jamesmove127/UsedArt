@@ -55,6 +55,8 @@ public class BaseApplication extends Application {
 
         RealmConfiguration configuration = new RealmConfiguration.Builder()
                 .name("usedart.realm")
+                .allowQueriesOnUiThread(true)
+                .allowWritesOnUiThread(true)
                 .schemaVersion(1)
                 .build();
         Realm.setDefaultConfiguration(configuration);

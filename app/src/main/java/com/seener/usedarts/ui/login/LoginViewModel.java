@@ -44,7 +44,7 @@ public class LoginViewModel extends ViewModel {
         FirebaseContants.TOKEN = currentUser.getToken();
         // TODO
         DatabaseOperations.getInstance().insertOrUpdateCurrent(
-                new CurrentUser(currentUser.getEmail(), currentUser.getEmail(), FirebaseContants.TOKEN),
+                new CurrentUser(currentUser.getUserId(), currentUser.getEmail(), currentUser.getEmail(), FirebaseContants.TOKEN),
                 (success, message) -> saveUserResult.setValue(new SaveUserInfo(success, message)));
     }
 

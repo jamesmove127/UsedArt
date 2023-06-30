@@ -106,10 +106,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void setUpNavHeader() {
         Observable.create(emitter -> {
-                    CurrentUser currentUser = DatabaseOperations.getInstance().getCurrentUser();
-                    Log.d("MainActivity", "currentUser:" + currentUser.toString());
-                    if (currentUser != null) {
-                        emitter.onNext(currentUser.getEmail());
+                    String email  = DatabaseOperations.getInstance().getCurrentUserEmail();
+                    if (email != null) {
+                        Log.d("LOGIN", "email:" + email);
+                        emitter.onNext(email);
                     } else {
                         emitter.onNext("");
                     }
@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                 }, throwable -> {
-                    // TODO
+                    Log.e("LOGIN", "setUpNavHeader:" + throwable);
                 });
     }
 }

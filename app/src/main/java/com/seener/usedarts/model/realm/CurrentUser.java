@@ -7,8 +7,7 @@ import io.realm.annotations.Required;
 public class CurrentUser extends RealmObject {
 
     @PrimaryKey
-    private int id;
-
+    private String userId;
     @Required
     private String email;
     private String displayName;
@@ -17,14 +16,19 @@ public class CurrentUser extends RealmObject {
     public CurrentUser() {
     }
 
-    public CurrentUser(String email, String displayName, String token) {
+    public CurrentUser(String userId, String email, String displayName, String token) {
+        this.userId = userId;
         this.email = email;
         this.displayName = displayName;
         this.token = token;
     }
 
-    public int getId() {
-        return id;
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getEmail() {
